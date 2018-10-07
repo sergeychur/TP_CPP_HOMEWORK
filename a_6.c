@@ -33,7 +33,7 @@ void free_arr(str_vector*);
 int arr_print(const str_vector);
 int str_tolower(const char*, char**);
 int str_arr_tolower(const str_vector, const size_t, str_vector*);
-char* input_string(void);
+char* input_string(int*);
 int fill_src_array(str_vector*, size_t*);
 
 // main
@@ -41,11 +41,11 @@ int main(void) {
 	str_vector str_arr = {NULL, 0, 0};
 	size_t str_num = 0;
 	int err_state = SUCCESS;
-	err_state -= fill_src_array(&str_arr, &str_num);
+	err_state += fill_src_array(&str_arr, &str_num);
 	str_vector dst_arr = {NULL, 0, 0};
-	err_state -= (err_state == SUCCESS) ? str_arr_tolower(str_arr, str_num, &dst_arr) : 0;
+	err_state += (err_state == SUCCESS) ? str_arr_tolower(str_arr, str_num, &dst_arr) : 0;
 	free_arr(&str_arr);
-	err_state -= (err_state == SUCCESS) ? arr_print(dst_arr) : 0;
+	err_state += (err_state == SUCCESS) ? arr_print(dst_arr) : 0;
 	free_arr(&dst_arr);
 	return (err_state == 0) ? 0 : error_end();
 }
@@ -57,11 +57,11 @@ int error_end(void) {
 }
 
 // copying the array of pointers
-int copy_pointers(char** dst, char** src, const size_t dst_size) {
+int copy_pointers(char** dst, char** src, const size_t src_size) {
 	if(!src && !dst) {
 		return ERR_EMPTY_PTR;
 	}
-	for(size_t i = 0; i < dst_size; ++i) {
+	for(size_t i = 0; i < src_size; ++i) {
 		dst[i] = src[i];
 	}
 	return 0;
@@ -157,7 +157,7 @@ int str_arr_tolower(const str_vector src_arr, const size_t str_num, str_vector* 
 }
 
 // reading the single line_array
-char* input_string(void) {
+char* input_string(int* err_state) {
 	char* string = NULL;
 	size_t size = 0;
 	size_t capacity = 0;
@@ -170,6 +170,7 @@ char* input_string(void) {
 				if(string) {
 					free(string);
 				}
+				*err_state += ERR_ALLOC;
 				return NULL;
 			}
 			if(string) {
@@ -183,6 +184,10 @@ char* input_string(void) {
 		string[size + 1] = '\0';
 		++size;
 	}
+	if(size == 0) {
+		string = (char*)malloc(2 * sizeof(char));
+		string[0] = '\0';
+	}
 	return string;
 }
 
@@ -190,17 +195,12 @@ char* input_string(void) {
 int fill_src_array(str_vector* str_arr, size_t* str_num) {
 	int err_state = SUCCESS;
 	while(!feof(stdin) && !err_state) {
-		char* line = input_string();
-		if(!feof(stdin)) {
-			if(!line) {
-				return ERR_ALLOC;
-			}
-			if(push_back(str_arr, line) != SUCCESS) {
-				free(line);
-				return ERR_ALLOC;
-			}
-			++(*str_num);
+		char* line = input_string(&err_state);
+		err_state += (err_state == SUCCESS) ? push_back(str_arr, line) : 0;
+		if(line && err_state) {
+			free(line);
 		}
+		++(*str_num);
 	}
 	return err_state;
 }
