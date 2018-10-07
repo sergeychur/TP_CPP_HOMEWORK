@@ -17,9 +17,6 @@
 
 #define ERR_EMPTY_PTR -1
 #define ERR_ALLOC -2
-#define IO_ERR -3
-#define ERR_NO_LINES -4
-#define ERR_CONVERT -5
 
 #define SUCCESS 0
 
