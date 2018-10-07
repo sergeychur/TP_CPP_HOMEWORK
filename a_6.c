@@ -21,6 +21,8 @@
 #define ERR_NO_LINES -4
 #define ERR_CONVERT -5
 
+#define SUCCESS 0
+
 typedef struct {
 	char** line_array;
 	size_t size;
@@ -123,10 +125,10 @@ int str_arr_tolower(const str_vector src_arr, const size_t str_num, str_vector* 
 		if(!line_array) {
 			return ERR_ALLOC;
 		}
-		if(str_tolower((src_arr.line_array)[i], &line_array) != 0) {
+		if(str_tolower((src_arr.line_array)[i], &line_array) != SUCCESS) {
 			return ERR_EMPTY_PTR;
 		}
-		if(push_back(dst_arr, line_array) != 0) {
+		if(push_back(dst_arr, line_array) != SUCCESS) {
 			free(line_array);
 			return ERR_EMPTY_PTR;
 		}
@@ -170,25 +172,24 @@ int main(void) {
 	size_t str_num = 0;
 	while(!feof(stdin)) {
 		char* line_array = input_string();
-		if(!line_array) {
-			if(feof(stdin)) {
-				continue;
+		if(!feof(stdin)) {
+			if(!line_array) {
+				return error_end();
 			}
-			return error_end();
+			if(push_back(&str_arr, line_array) != SUCCESS) {
+				free(line_array);
+				free_arr(&str_arr);
+				return error_end();
+			}
+			++str_num;
 		}
-		if(push_back(&str_arr, line_array) != 0) {
-			free(line_array);
-			free_arr(&str_arr);
-			return error_end();
-		}
-		++str_num;
 	}
 	str_vector dst_arr = {NULL, 0, 0};
-	if(str_arr_tolower(str_arr, str_num, &dst_arr) != 0) {
+	if(str_arr_tolower(str_arr, str_num, &dst_arr) != SUCCESS) {
 		free_arr(&str_arr);
 		return error_end();
 	}
-	if(arr_print(dst_arr) != 0) {
+	if(arr_print(dst_arr) != SUCCESS) {
 		free_arr(&str_arr);
 		free_arr(&dst_arr);
 		return error_end();
