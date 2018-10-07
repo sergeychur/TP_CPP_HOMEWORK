@@ -22,104 +22,120 @@
 #define ERR_CONVERT -5
 
 typedef struct {
-	char** line;
+	char** line_array;
 	size_t size;
 	size_t capacity;
 } str_vector;
 
+// defines the behaviour after possible mistake in main
 int error_end(void) {
-	// defines the behaviour after possible mistake in main
-	fputs("[error]\n", stderr);
+	fputs("[error]", stderr);
 	return 0;
 }
 
+// copying the array of pointers
+int copy_pointers(char** dst, char** src, const size_t dst_size) {
+	if(!src && !dst) {
+		return ERR_EMPTY_PTR;
+	}
+	for(size_t i = 0; i < dst_size; ++i) {
+		dst[i] = src[i];
+	}
+	return 0;
+}
+
+// place the strig nto the end aof thre array
 int push_back(str_vector* dst, char* src) {
-	// place the strig nto the end aof thre array
 	if(!src) {
 		return ERR_EMPTY_PTR;
 	}
 	if(dst->size + 1 >= dst->capacity) {
 		size_t new_capacity = (dst->capacity == 0) ? 1 : dst->capacity * 2;
-		dst->line = (char**)realloc(dst->line, sizeof(char*) * new_capacity);
-		if(!dst->line) {
+		// dst->line_array = (char**)realloc(dst->line_array, sizeof(char*) * new_capacity);
+		char** tmp = (char**)malloc(sizeof(char*) * new_capacity);
+		if(!tmp) {
 			return ERR_ALLOC;
 		}
+		if(dst->line_array) {
+			copy_pointers(tmp, dst->line_array, dst->size);
+			free(dst->line_array);
+		}
+		dst->line_array = tmp;
 		dst->capacity = new_capacity;
 	}
-	(dst->line)[dst->size] = src;
+	(dst->line_array)[dst->size] = src;
 	++(dst->size);
 	return 0;
 }
 
 
-
+// free the recources
 void free_arr(str_vector* str_arr) {
-	// free the recources
-	if(str_arr->line) {
+	if(str_arr->line_array) {
 		for(size_t i = 0; i < str_arr->size; ++i) {
-			if((str_arr->line)[i]) {
-				free((str_arr->line)[i]);
+			if((str_arr->line_array)[i]) {
+				free((str_arr->line_array)[i]);
 			}
 		}
 		str_arr->capacity = 0;
 		str_arr->size = 0;
-		free(str_arr->line);
+		free(str_arr->line_array);
 	}
 }
 
+// printing the array of strings
 int arr_print(const str_vector str_arr) {
-	// printing the array of strings
-	if(!(str_arr.line)) {
+	if(!(str_arr.line_array)) {
 		return ERR_EMPTY_PTR;
 	}
 	for(size_t i = 0; i < str_arr.size; ++i) {
-		if(!(str_arr.line)[i]) {
+		if(!(str_arr.line_array)[i]) {
 			return ERR_EMPTY_PTR;
 		}
-		puts((str_arr.line)[i]);
+		puts((str_arr.line_array)[i]);
 	}
 	return 0;
 }
 
-int str_tolower(const char* src_line, char** dst_line) {
-	// converting the string to lower case
-	if(!src_line) {
+// converting the string to lower case
+int str_tolower(const char* src_line_array, char** dst_line_array) {
+	if(!src_line_array) {
 		return ERR_EMPTY_PTR;
 	}
 	size_t i = 0;
-	for(i = 0; i < strlen(src_line); ++i) {
-		(*dst_line)[i] = tolower(src_line[i]);
+	for(i = 0; i < strlen(src_line_array); ++i) {
+		(*dst_line_array)[i] = tolower(src_line_array[i]);
 	}
-	(*dst_line)[strlen(src_line)] = '\0';
+	(*dst_line_array)[strlen(src_line_array)] = '\0';
 	return 0;
 }
 
+// converting string array to lowercase
 int str_arr_tolower(const str_vector src_arr, const size_t str_num, str_vector* dst_arr) {
-	// converting string array to lowercase
-	if(!(src_arr.line)) {
+	if(!(src_arr.line_array)) {
 		return ERR_EMPTY_PTR;
 	}
 	for(size_t i = 0; i < str_num; ++i) {
-		if(!(src_arr.line)[i]) {
+		if(!(src_arr.line_array)[i]) {
 			return ERR_EMPTY_PTR;
 		}
-		char* line = (char*)malloc(sizeof(char) * (strlen(src_arr.line[i]) + 2));
-		if(!line) {
+		char* line_array = (char*)malloc(sizeof(char) * (strlen(src_arr.line_array[i]) + 2));
+		if(!line_array) {
 			return ERR_ALLOC;
 		}
-		if(str_tolower((src_arr.line)[i], &line) != 0) {
+		if(str_tolower((src_arr.line_array)[i], &line_array) != 0) {
 			return ERR_EMPTY_PTR;
 		}
-		if(push_back(dst_arr, line) != 0) {
-			free(line);
+		if(push_back(dst_arr, line_array) != 0) {
+			free(line_array);
 			return ERR_EMPTY_PTR;
 		}
 	}
 	return 0;
 }
 
+// reading the single line_array
 char* input_string(void) {
-	// reading the single line
 	char* string = NULL;
 	size_t size = 0;
 	size_t capacity = 0;
@@ -148,20 +164,20 @@ char* input_string(void) {
 	return string;
 } 
 
+// main
 int main(void) {
-	// main
 	str_vector str_arr = {NULL, 0, 0};
 	size_t str_num = 0;
 	while(!feof(stdin)) {
-		char* line = input_string();
-		if(!line) {
+		char* line_array = input_string();
+		if(!line_array) {
 			if(feof(stdin)) {
 				continue;
 			}
 			return error_end();
 		}
-		if(push_back(&str_arr, line) != 0) {
-			free(line);
+		if(push_back(&str_arr, line_array) != 0) {
+			free(line_array);
 			free_arr(&str_arr);
 			return error_end();
 		}
