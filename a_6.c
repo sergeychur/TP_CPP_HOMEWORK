@@ -122,7 +122,7 @@ int arr_print(const str_vector str_arr) {
 
 // converting the string to lower case
 int str_tolower(const char* src_line, char** dst_line) {
-	if(!src_line) {
+	if(!src_line && dst_line) {
 		return ERR_EMPTY_PTR;
 	}
 	size_t i = 0;
@@ -158,6 +158,9 @@ int str_arr_tolower(const str_vector src_arr, const size_t str_num, str_vector* 
 
 // reading the single line_array
 char* input_string(int* err_state) {
+	if(!err_state) {
+		return NULL;
+	}
 	char* string = NULL;
 	size_t size = 0;
 	size_t capacity = 0;
